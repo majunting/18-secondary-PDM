@@ -1,5 +1,5 @@
 /**
-  @Generated PIC10 / PIC12 / PIC16 / PIC18 MCUs  Source File
+  @Generated MPLAB(c) Code Configurator Source File
 
   @Company:
     Microchip Technology Inc.
@@ -8,13 +8,13 @@
     mcc.c
 
   @Summary:
-    This is the mcc.c file generated using PIC10 / PIC12 / PIC16 / PIC18 MCUs 
+    This is the mcc.c file generated using MPLAB(c) Code Configurator
 
   @Description:
     This header file provides implementations for driver APIs for all modules selected in the GUI.
     Generation Information :
-        Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs  - 1.45
-        Device            :  PIC18F45K80
+        Product Revision  :  MPLAB(c) Code Configurator - 4.15.3
+        Device            :  PIC18F46K80
         Driver Version    :  1.02
     The generated drivers are tested against the following:
         Compiler          :  XC8 1.35
@@ -48,11 +48,11 @@
 // CONFIG1L
 #pragma config RETEN = OFF    // VREG Sleep Enable bit->Ultra low-power regulator is Disabled (Controlled by REGSLP bit)
 #pragma config INTOSCSEL = HIGH    // LF-INTOSC Low-power Enable bit->LF-INTOSC in High-power mode during Sleep
-#pragma config SOSCSEL = DIG    // SOSC Power Selection and mode Configuration bits->Digital (SCLKI) mode
+#pragma config SOSCSEL = HIGH    // SOSC Power Selection and mode Configuration bits->High Power SOSC circuit selected
 #pragma config XINST = OFF    // Extended Instruction Set->Disabled
 
 // CONFIG1H
-#pragma config FOSC = INTIO1    // Oscillator->Internal RC oscillator, CLKOUT function on OSC2
+#pragma config FOSC = HS1    // Oscillator->HS oscillator (Medium power, 4 MHz - 16 MHz)
 #pragma config PLLCFG = OFF    // PLL x4 Enable bit->Disabled
 #pragma config FCMEN = OFF    // Fail-Safe Clock Monitor->Disabled
 #pragma config IESO = OFF    // Internal External Oscillator Switch Over Mode->Disabled
@@ -77,20 +77,20 @@
 #pragma config BBSIZ = BB2K    // Boot Block Size->2K word Boot Block size
 
 // CONFIG5L
-#pragma config CP0 = OFF    // Code Protect 00800-01FFF->Disabled
-#pragma config CP1 = OFF    // Code Protect 02000-03FFF->Disabled
-#pragma config CP2 = OFF    // Code Protect 04000-05FFF->Disabled
-#pragma config CP3 = OFF    // Code Protect 06000-07FFF->Disabled
+#pragma config CP0 = OFF    // Code Protect 00800-03FFF->Disabled
+#pragma config CP1 = OFF    // Code Protect 04000-07FFF->Disabled
+#pragma config CP2 = OFF    // Code Protect 08000-0BFFF->Disabled
+#pragma config CP3 = OFF    // Code Protect 0C000-0FFFF->Disabled
 
 // CONFIG5H
 #pragma config CPB = OFF    // Code Protect Boot->Disabled
 #pragma config CPD = OFF    // Data EE Read Protect->Disabled
 
 // CONFIG6L
-#pragma config WRT0 = OFF    // Table Write Protect 00800-01FFF->Disabled
-#pragma config WRT1 = OFF    // Table Write Protect 02000-03FFF->Disabled
-#pragma config WRT2 = OFF    // Table Write Protect 04000-05FFF->Disabled
-#pragma config WRT3 = OFF    // Table Write Protect 06000-07FFF->Disabled
+#pragma config WRT0 = OFF    // Table Write Protect 00800-03FFF->Disabled
+#pragma config WRT1 = OFF    // Table Write Protect 04000-07FFF->Disabled
+#pragma config WRT2 = OFF    // Table Write Protect 08000-0BFFF->Disabled
+#pragma config WRT3 = OFF    // Table Write Protect 0C000-0FFFF->Disabled
 
 // CONFIG6H
 #pragma config WRTC = OFF    // Config. Write Protect->Disabled
@@ -98,10 +98,10 @@
 #pragma config WRTD = OFF    // Data EE Write Protect->Disabled
 
 // CONFIG7L
-#pragma config EBTR0 = OFF    // Table Read Protect 00800-01FFF->Disabled
-#pragma config EBTR1 = OFF    // Table Read Protect 02000-03FFF->Disabled
-#pragma config EBTR2 = OFF    // Table Read Protect 04000-05FFF->Disabled
-#pragma config EBTR3 = OFF    // Table Read Protect 06000-07FFF->Disabled
+#pragma config EBTR0 = OFF    // Table Read Protect 00800-03FFF->Disabled
+#pragma config EBTR1 = OFF    // Table Read Protect 04000-07FFF->Disabled
+#pragma config EBTR2 = OFF    // Table Read Protect 08000-0BFFF->Disabled
+#pragma config EBTR3 = OFF    // Table Read Protect 0C000-0FFFF->Disabled
 
 // CONFIG7H
 #pragma config EBTRB = OFF    // Table Read Protect Boot->Disabled
@@ -111,24 +111,95 @@
 void SYSTEM_Initialize(void)
 {
 
+    INTERRUPT_Initialize();
     PIN_MANAGER_Initialize();
     OSCILLATOR_Initialize();
+    I2C_Initialize();
+    CCP2_Initialize();
+    ADC_Initialize();
+    TMR1_Initialize();
     ECAN_Initialize();
+//    BNO055_Initialize();
 }
 
 void OSCILLATOR_Initialize(void)
 {
-    // SCS FOSC; HFIOFS not stable; IDLEN disabled; IRCF 16MHz_HF; 
-    OSCCON = 0x70;
+    // SCS FOSC; HFIOFS not stable; IDLEN disabled; IRCF 8MHz_HF; 
+    OSCCON = 0x60;
     // SOSCGO disabled; MFIOSEL disabled; SOSCDRV Low Power; 
     OSCCON2 = 0x00;
-    // INTSRC INTRC; PLLEN disabled; TUN 0; 
-    OSCTUNE = 0x00;
+    // INTSRC INTRC; PLLEN enabled; TUN 0; 
+    OSCTUNE = 0x40;
     // ROSEL System Clock(FOSC); ROON disabled; ROSSLP Disabled in Sleep mode; RODIV Fosc; 
     REFOCON = 0x00;
 }
-
-
+/*
+void BNO055_Initialize ( void )
+{
+    uint8_t id;
+    uint8_t message, message1;
+    I2C_MESSAGE_STATUS flag = I2C_MESSAGE_PENDING;
+    
+    I2C_MasterRead ( &id, 1, BNO055_CHIP_ID_ADDR, &flag );
+    while ( flag == I2C_MESSAGE_PENDING );
+    if ( id != BNO055_ID ){
+        flag = I2C_MESSAGE_PENDING;
+        I2C_MasterRead ( &id, 1, BNO055_CHIP_ID_ADDR, &flag );
+        while ( flag == I2C_MESSAGE_PENDING );
+        if ( id != BNO055_ID ) {
+            return;
+        }
+    }
+    __delay_ms(25);
+//    
+    message = OPERATION_MODE_CONFIG;
+    flag = I2C_MESSAGE_PENDING;
+    I2C_MasterWrite( &message, 1, BNO055_OPR_MODE_ADDR, &flag );
+    while ( flag == I2C_MESSAGE_PENDING );
+    
+//    flag = I2C_MESSAGE_PENDING;
+//    I2C_MasterRead ( &id, 1, BNO055_CHIP_ID_ADDR, &flag );
+//    while ( flag == I2C_MESSAGE_PENDING );
+    
+//    __delay_ms(50);
+//    
+    message = 0x20;
+    flag = I2C_MESSAGE_PENDING;
+    I2C_MasterWrite ( &message, 1, BNO055_SYS_TRIGGER_ADDR, &flag );
+    while ( flag == I2C_MESSAGE_PENDING );
+//    __delay_ms(25);
+    do {
+        flag = I2C_MESSAGE_PENDING;
+        I2C_MasterRead ( &id, 1, BNO055_CHIP_ID_ADDR, &flag );
+        while ( flag == I2C_MESSAGE_PENDING );
+        __delay_ms(25);
+    } while ( id != BNO055_ID );
+    
+    message1 = POWER_MODE_NORMAL;
+    flag = I2C_MESSAGE_PENDING;
+    I2C_MasterWrite ( &message1, 1, BNO055_PWR_MODE_ADDR, &flag );
+    while ( flag == I2C_MESSAGE_PENDING );
+    
+    message = 0x0;
+    flag = I2C_MESSAGE_PENDING;
+    I2C_MasterWrite ( &message, 1, BNO055_PAGE_ID_ADDR, &flag );
+    while ( flag == I2C_MESSAGE_PENDING );
+    
+    message = 0x0;
+    flag = I2C_MESSAGE_PENDING;
+    I2C_MasterWrite ( &message, 1, BNO055_SYS_TRIGGER_ADDR, &flag );
+    while ( flag == I2C_MESSAGE_PENDING );
+    __delay_ms(25);
+    
+    //set mode to nine degree of freedom (fusion mode)
+    message = OPERATION_MODE_NDOF;
+    flag = I2C_MESSAGE_PENDING;
+    I2C_MasterWrite ( &message, 1, BNO055_OPR_MODE_ADDR, &flag );
+    while ( flag == I2C_MESSAGE_PENDING );
+//    __delay_ms(100);
+    return;
+}
+*/
 /**
  End of File
 */

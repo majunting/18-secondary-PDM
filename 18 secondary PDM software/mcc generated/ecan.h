@@ -8,13 +8,13 @@
     ecan.h
 
   @Summary
-    This is the generated header file for the ECAN driver using PIC10 / PIC12 / PIC16 / PIC18 MCUs 
+    This is the generated header file for the ECAN driver using MPLAB(c) Code Configurator
 
   @Description
     This header file provides APIs for driver for ECAN.
     Generation Information :
-        Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs  - 1.45
-        Device            :  PIC18F45K80
+        Product Revision  :  MPLAB(c) Code Configurator - 4.15.3
+        Device            :  PIC18F46K80
         Driver Version    :  1.00
     The generated drivers are tested against the following:
         Compiler          :  XC8 1.35
