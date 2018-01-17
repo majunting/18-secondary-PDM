@@ -87,26 +87,6 @@
 #define BT_FL_SetAnalogMode()  do { ANCON0bits.ANSEL1 = 1; } while(0)
 #define BT_FL_SetDigitalMode() do { ANCON0bits.ANSEL1 = 0; } while(0)
 
-// get/set RA2 procedures
-#define RA2_SetHigh()    do { LATAbits.LATA2 = 1; } while(0)
-#define RA2_SetLow()   do { LATAbits.LATA2 = 0; } while(0)
-#define RA2_Toggle()   do { LATAbits.LATA2 = ~LATAbits.LATA2; } while(0)
-#define RA2_GetValue()         PORTAbits.RA2
-#define RA2_SetDigitalInput()   do { TRISAbits.TRISA2 = 1; } while(0)
-#define RA2_SetDigitalOutput()  do { TRISAbits.TRISA2 = 0; } while(0)
-#define RA2_SetAnalogMode() do { ANCON0bits.ANSEL2 = 1; } while(0)
-#define RA2_SetDigitalMode()do { ANCON0bits.ANSEL2 = 0; } while(0)
-
-// get/set RA3 procedures
-#define RA3_SetHigh()    do { LATAbits.LATA3 = 1; } while(0)
-#define RA3_SetLow()   do { LATAbits.LATA3 = 0; } while(0)
-#define RA3_Toggle()   do { LATAbits.LATA3 = ~LATAbits.LATA3; } while(0)
-#define RA3_GetValue()         PORTAbits.RA3
-#define RA3_SetDigitalInput()   do { TRISAbits.TRISA3 = 1; } while(0)
-#define RA3_SetDigitalOutput()  do { TRISAbits.TRISA3 = 0; } while(0)
-#define RA3_SetAnalogMode() do { ANCON0bits.ANSEL3 = 1; } while(0)
-#define RA3_SetDigitalMode()do { ANCON0bits.ANSEL3 = 0; } while(0)
-
 // get/set spare2 aliases
 #define spare2_TRIS               TRISAbits.TRISA5
 #define spare2_LAT                LATAbits.LATA5
@@ -120,40 +100,6 @@
 #define spare2_SetDigitalOutput()   do { TRISAbits.TRISA5 = 0; } while(0)
 #define spare2_SetAnalogMode()  do { ANCON0bits.ANSEL4 = 1; } while(0)
 #define spare2_SetDigitalMode() do { ANCON0bits.ANSEL4 = 0; } while(0)
-
-// get/set GPS_btn aliases
-#define GPS_btn_TRIS               TRISBbits.TRISB0
-#define GPS_btn_LAT                LATBbits.LATB0
-#define GPS_btn_PORT               PORTBbits.RB0
-#define GPS_btn_WPU                WPUBbits.WPUB0
-#define GPS_btn_ANS                ANCON1bits.ANSEL10
-#define GPS_btn_SetHigh()            do { LATBbits.LATB0 = 1; } while(0)
-#define GPS_btn_SetLow()             do { LATBbits.LATB0 = 0; } while(0)
-#define GPS_btn_Toggle()             do { LATBbits.LATB0 = ~LATBbits.LATB0; } while(0)
-#define GPS_btn_GetValue()           PORTBbits.RB0
-#define GPS_btn_SetDigitalInput()    do { TRISBbits.TRISB0 = 1; } while(0)
-#define GPS_btn_SetDigitalOutput()   do { TRISBbits.TRISB0 = 0; } while(0)
-#define GPS_btn_SetPullup()      do { WPUBbits.WPUB0 = 1; } while(0)
-#define GPS_btn_ResetPullup()    do { WPUBbits.WPUB0 = 0; } while(0)
-#define GPS_btn_SetAnalogMode()  do { ANCON1bits.ANSEL10 = 1; } while(0)
-#define GPS_btn_SetDigitalMode() do { ANCON1bits.ANSEL10 = 0; } while(0)
-
-// get/set DRS_btn aliases
-#define DRS_btn_TRIS               TRISBbits.TRISB1
-#define DRS_btn_LAT                LATBbits.LATB1
-#define DRS_btn_PORT               PORTBbits.RB1
-#define DRS_btn_WPU                WPUBbits.WPUB1
-#define DRS_btn_ANS                ANCON1bits.ANSEL8
-#define DRS_btn_SetHigh()            do { LATBbits.LATB1 = 1; } while(0)
-#define DRS_btn_SetLow()             do { LATBbits.LATB1 = 0; } while(0)
-#define DRS_btn_Toggle()             do { LATBbits.LATB1 = ~LATBbits.LATB1; } while(0)
-#define DRS_btn_GetValue()           PORTBbits.RB1
-#define DRS_btn_SetDigitalInput()    do { TRISBbits.TRISB1 = 1; } while(0)
-#define DRS_btn_SetDigitalOutput()   do { TRISBbits.TRISB1 = 0; } while(0)
-#define DRS_btn_SetPullup()      do { WPUBbits.WPUB1 = 1; } while(0)
-#define DRS_btn_ResetPullup()    do { WPUBbits.WPUB1 = 0; } while(0)
-#define DRS_btn_SetAnalogMode()  do { ANCON1bits.ANSEL8 = 1; } while(0)
-#define DRS_btn_SetDigitalMode() do { ANCON1bits.ANSEL8 = 0; } while(0)
 
 // get/set RB2 procedures
 #define RB2_SetHigh()    do { LATBbits.LATB2 = 1; } while(0)
@@ -174,14 +120,6 @@
 #define RB3_SetDigitalOutput()  do { TRISBbits.TRISB3 = 0; } while(0)
 #define RB3_SetPullup()     do { WPUBbits.WPUB3 = 1; } while(0)
 #define RB3_ResetPullup()   do { WPUBbits.WPUB3 = 0; } while(0)
-
-// get/set RC2 procedures
-#define RC2_SetHigh()    do { LATCbits.LATC2 = 1; } while(0)
-#define RC2_SetLow()   do { LATCbits.LATC2 = 0; } while(0)
-#define RC2_Toggle()   do { LATCbits.LATC2 = ~LATCbits.LATC2; } while(0)
-#define RC2_GetValue()         PORTCbits.RC2
-#define RC2_SetDigitalInput()   do { TRISCbits.TRISC2 = 1; } while(0)
-#define RC2_SetDigitalOutput()  do { TRISCbits.TRISC2 = 0; } while(0)
 
 // get/set RC3 procedures
 #define RC3_SetHigh()    do { LATCbits.LATC3 = 1; } while(0)

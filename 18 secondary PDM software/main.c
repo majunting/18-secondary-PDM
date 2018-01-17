@@ -55,26 +55,7 @@ void main(void)
 {
     // Initialize the device
     SYSTEM_Initialize();
-    // edit 4 bits in CIOCON register (CAN IO control)
-    CIOCONbits.CLKSEL = 1;  // CAN clk select
-    CIOCONbits.ENDRHI = 1;  // enable drive high (CANTX drives VDD when recessive)
-    CIOCONbits.TX2SRC = 0;  // CANTX2 pin data source (output CANTX)
-    CIOCONbits.TX2EN = 1;   // CANTX pin enable (output CANRX or CAN clk based on TX2SRC)
     
-    double VDD = 5000.0;    // input voltage 5V
-    double x = VDD / 4096.0;
-    
-    uint8_t BTFL_H, BTFL_L, BTFR_H, BTFR_L, pitot_H, pitot_L,
-            spare_H, spare_L, spare2_H, spare2_L;
-    adc_result_t ADCResult;
-    uint8_t linear_accel_x_LSB, linear_accel_x_MSB, linear_accel_y_LSB,
-            linear_accel_y_MSB, linear_accel_z_LSB, linear_accel_z_MSB;
-    uint8_t *writeBuffer;
-    uint8_t *data;
-    uint8_t BNO055_address = BNO055_ADDRESS_B;
-    uint16_t timeOut = 0;
-    I2C_MESSAGE_STATUS flag = I2C_MESSAGE_PENDING;
-
     // If using interrupts in PIC18 High/Low Priority Mode you need to enable the Global High and Low Interrupts
     // If using interrupts in PIC Mid-Range Compatibility Mode you need to enable the Global and Peripheral Interrupts
     // Use the following macros to:
@@ -103,8 +84,34 @@ void main(void)
     // Disable the Peripheral Interrupts
     //INTERRUPT_PeripheralInterruptDisable();
 
+    // edit 4 bits in CIOCON register (CAN IO control)
+    CIOCONbits.CLKSEL = 1;  // CAN clk select
+    CIOCONbits.ENDRHI = 1;  // enable drive high (CANTX drives VDD when recessive)
+    CIOCONbits.TX2SRC = 0;  // CANTX2 pin data source (output CANTX)
+    CIOCONbits.TX2EN = 1;   // CANTX pin enable (output CANRX or CAN clk based on TX2SRC)
+    
+    double VDD = 5000.0;    // input voltage 5V
+    double x = VDD / 4096.0;
+    
+    uint8_t BTFL_H, BTFL_L, BTFR_H, BTFR_L, pitot_H, pitot_L,
+            spare_H, spare_L, spare2_H, spare2_L;
+    adc_result_t ADCResult;
+    uint8_t linear_accel_x_LSB = 0xEE, linear_accel_x_MSB = 0xFF, linear_accel_y_LSB = 0x00,
+            linear_accel_y_MSB = 0x00, linear_accel_z_LSB = 0x00, linear_accel_z_MSB = 0x00;
+    uint8_t *writeBuffer;
+    uint8_t *data;
+    uint8_t BNO055_address = BNO055_Initialize();
+    uint16_t timeOut = 0;
+    bool complete = false;
+    bool timeOUT = false;
+    bool fail = false;
+    I2C_MESSAGE_STATUS flag = I2C_MESSAGE_PENDING;
+    uint8_t error;
+    
     while (1)
-    {
+    {        
+        // Add your application code
+        
         /** ADC */
         ADCResult = ADC_GetConversion(BT_FL) * x;
         BTFL_H = ADCResult >> 8;
@@ -138,62 +145,49 @@ void main(void)
         CAN_transmit(&ADC1);
         
 //        /** G sensor */
-//        //set to 9 degrees of freedom mode
-//        while (flag != I2C_MESSAGE_FAIL && timeOut < BNO055_MAX_RETRY) {
-//            while ( I2C_MasterQueueIsEmpty() == false );
-//            writeBuffer[0] = BNO055_OPR_MODE_ADDR;
-//            writeBuffer[1] = OPERATION_MODE_NDOF;
-//            I2C_MasterWrite ( writeBuffer, 2, BNO055_address, &flag );
-//            while (flag == I2C_MESSAGE_PENDING);
-//            if (flag == I2C_MESSAGE_COMPLETE)   timeOut = BNO055_MAX_RETRY;
-//            timeOut++;
-//        }
-//        timeOut = 0;
-//        
 //        //read linear acceleration data for 3 axis
 //        while (flag != I2C_MESSAGE_FAIL && timeOut < BNO055_MAX_RETRY){
-//            while ( I2C_MasterQueueIsEmpty() == false );
-//            writeBuffer[0] = BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR;
-//            flag = I2C_MESSAGE_PENDING;
-//            I2C_MasterWrite (writeBuffer, 1, BNO055_address, &flag);
+            while ( I2C_MasterQueueIsFull() == true );
+            writeBuffer[0] = BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR;
+            I2C_MasterWrite (writeBuffer, 1, BNO055_address, &flag);
 //            while (flag == I2C_MESSAGE_PENDING);
 //            if (flag == I2C_MESSAGE_COMPLETE)   timeOut = BNO055_MAX_RETRY;
 //            timeOut++;
 //        }
 //        timeOut = 0;
 //        
-//        while (I2C_MasterQueueIsEmpty() == false);
-//        flag = I2C_MESSAGE_PENDING;
-//        I2C_MasterRead (data, 6, BNO055_address, &flag);
+        while (I2C_MasterQueueIsFull() == true);
+        flag = I2C_MESSAGE_PENDING;
+        I2C_MasterRead (data, 6, BNO055_address, &flag);
 //        while (flag == I2C_MESSAGE_PENDING);
-//        
-//        linear_accel_x_LSB = data[0];
-//        linear_accel_x_MSB = data[1];
-//        linear_accel_y_LSB = data[2];
-//        linear_accel_y_MSB = data[3];
-//        linear_accel_z_LSB = data[4];
-//        linear_accel_z_MSB = data[5];
         
-        uCAN_MSG ADC2;
+        linear_accel_x_LSB = data[0];
+        linear_accel_x_MSB = data[1];
+        linear_accel_y_LSB = data[2];
+        linear_accel_y_MSB = data[3];
+        linear_accel_z_LSB = data[4];
+        linear_accel_z_MSB = data[5];
         
-        ADC2.frame.idType=dSTANDARD_CAN_MSG_ID_2_0B;
-        ADC2.frame.id=0x635;
-        ADC2.frame.dlc=2;
-        ADC2.frame.data0 = spare2_H;
-        ADC2.frame.data1 = spare2_L;
-//        CAN_MESSAGE2.frame.data2 = linear_accel_x_LSB;
-//        CAN_MESSAGE2.frame.data3 = linear_accel_x_MSB;
-//        CAN_MESSAGE2.frame.data4 = linear_accel_y_LSB;
-//        CAN_MESSAGE2.frame.data5 = linear_accel_y_MSB;
-//        CAN_MESSAGE2.frame.data6 = linear_accel_z_LSB;
-//        CAN_MESSAGE2.frame.data7 = linear_accel_z_MSB;
-//       
-        CAN_transmit ( &ADC2 );
-
-        // Add your application code
+        uCAN_MSG CAN_MESSAGE2;
         
-//        while (flag != I2C_MESSAGE_FAIL && timeOut < BNO055_MAX_RETRY) {
-//        }
+        CAN_MESSAGE2.frame.idType=dSTANDARD_CAN_MSG_ID_2_0B;
+        CAN_MESSAGE2.frame.id=0x635;
+        CAN_MESSAGE2.frame.dlc=8;
+        CAN_MESSAGE2.frame.data0 = spare2_H;
+        CAN_MESSAGE2.frame.data1 = spare2_L;
+        CAN_MESSAGE2.frame.data2 = linear_accel_x_LSB;
+        CAN_MESSAGE2.frame.data3 = linear_accel_x_MSB;
+        CAN_MESSAGE2.frame.data4 = linear_accel_y_LSB;
+        CAN_MESSAGE2.frame.data5 = linear_accel_y_MSB;
+        CAN_MESSAGE2.frame.data6 = linear_accel_z_LSB;
+        CAN_MESSAGE2.frame.data7 = linear_accel_z_MSB;
+         
+        CAN_transmit ( &CAN_MESSAGE2 );
+        
+        linear_accel_y_LSB += 0x1;
+        linear_accel_y_MSB += 0x1;
+        linear_accel_z_LSB += 0x1;
+        linear_accel_z_MSB += 0x1;
     }
 }
 /**

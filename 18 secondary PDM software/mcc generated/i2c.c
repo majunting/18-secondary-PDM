@@ -208,8 +208,8 @@ void I2C_Initialize(void)
     SSPSTAT = 0x00;
     // SSPEN enabled; WCOL no_collision; CKP disabled; SSPM 7 Bit Polling; SSPOV no_overflow; 
     SSPCON1 = 0x26;
-    // Baud Rate Generator Value: SSPADD 49;   
-    SSPADD = 0x31;
+    // Baud Rate Generator Value: SSPADD 3;   
+    SSPADD = 0x03;
 
    
     // clear the master interrupt flag
@@ -236,13 +236,13 @@ void I2C_ISR ( void )
     static uint8_t  i2c_bytes_left      = 0;
     static uint8_t  i2c_10bit_address_restart = 0;
 
-    PIR1bits.SSPIF = 0;
+//    PIR1bits.SSPIF = 0;
 
     // Check first if there was a collision.
     // If we have a Write Collision, reset and go to idle state */
     if(I2C_WRITE_COLLISION_STATUS_BIT)
     {
-        // clear the Write colision
+        // clear the Write collision
         I2C_WRITE_COLLISION_STATUS_BIT = 0;
         i2c_state = S_MASTER_IDLE;
         *(p_i2c_current->pTrFlag) = I2C_MESSAGE_FAIL;
@@ -683,7 +683,8 @@ void I2C_MasterTRBInsert(
         {
             // force the task to run since we know that the queue has
             // something that needs to be sent
-            PIR1bits.SSPIF = true;
+//            PIR1bits.SSPIF = true;
+            I2C_ISR();
         }
     }   // block until request is complete
 
@@ -728,6 +729,10 @@ void I2C_BusCollisionISR( void )
     // enter bus collision handling code here
 }        
         
+uint8_t I2C_GetErrorCount()
+{
+    return i2c_object.i2cErrors;
+}
         
 /**
  End of File

@@ -62,8 +62,8 @@ void ADC_Initialize(void)
     // GO_nDONE stop; ADON enabled; CHS AN0; 
     ADCON0 = 0x01;
     
-    // TRIGSEL Timer1; VNCFG external; VCFG external; CHSN AVss; 
-    ADCON1 = 0x98;
+    // TRIGSEL Timer1; VNCFG AVSS; VCFG AVDD; CHSN AVss; 
+    ADCON1 = 0x80;
     
     // ADFM Right; ACQT 2_Tad; ADCS FOSC/64; 
     ADCON2 = 0x8E;

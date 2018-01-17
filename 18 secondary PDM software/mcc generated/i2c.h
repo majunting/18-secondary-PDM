@@ -686,6 +686,8 @@ bool I2C_MasterQueueIsFull(void);
 void I2C_BusCollisionISR( void );
 void I2C_ISR ( void );
 
+uint8_t I2C_GetErrorCount();
+
 
 #ifdef __cplusplus  // Provide C++ Compatibility
 
