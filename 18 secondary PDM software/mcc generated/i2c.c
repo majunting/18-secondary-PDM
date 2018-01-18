@@ -212,10 +212,10 @@ void I2C_Initialize(void)
     SSPADD = 0x03;
 
    
-    // clear the master interrupt flag
-    PIR1bits.SSPIF = 0;
-    // enable the master interrupt
-    PIE1bits.SSPIE = 1;
+//    // clear the master interrupt flag
+//    PIR1bits.SSPIF = 0;
+//    // enable the master interrupt
+//    PIE1bits.SSPIE = 1;
     
 }
 
@@ -376,48 +376,24 @@ void I2C_ISR ( void )
                 i2c_10bit_address_restart prevents the  address to
                 be re-written.
              */
-            if(i2c_10bit_address_restart != 1)
+            I2C_Stop(I2C_MESSAGE_FAIL);
+            
+            // extract the information for this message
+            i2c_address    = p_i2c_trb_current->address;
+            pi2c_buf_ptr   = p_i2c_trb_current->pbuffer;
+            i2c_bytes_left = p_i2c_trb_current->length;
+               
+            // Transmit the address
+            I2C_TRANSMIT_REG = i2c_address;
+            if(i2c_address & 0x01)
             {
-                // extract the information for this message
-                i2c_address    = p_i2c_trb_current->address;
-                pi2c_buf_ptr   = p_i2c_trb_current->pbuffer;
-                i2c_bytes_left = p_i2c_trb_current->length;
-            }
-
-            // check for 10-bit address
-            if(!I2C_7bit && (0x0 != i2c_address))
-            {  
-                if (0 == i2c_10bit_address_restart)
-                {
-                    // we have a 10 bit address
-                    // send bits<9:8>
-                    // mask bit 0 as this is always a write                    
-                    I2C_TRANSMIT_REG = 0xF0 | ((i2c_address >> 8) & 0x0006);
-                    i2c_state = S_MASTER_SEND_ADDR_10BIT_LSB;
-                }
-                else
-                {
-                    // resending address bits<9:8> to trigger read
-                    I2C_TRANSMIT_REG = i2c_address;
-                    i2c_state = S_MASTER_ACK_ADDR;
-                    // reset the flag so the next access is ok
-                    i2c_10bit_address_restart = 0;
-                }
+                // Next state is to wait for address to be acked
+                i2c_state = S_MASTER_ACK_ADDR;
             }
             else
             {
-                // Transmit the address
-                I2C_TRANSMIT_REG = i2c_address;
-                if(i2c_address & 0x01)
-                {
-                    // Next state is to wait for address to be acked
-                    i2c_state = S_MASTER_ACK_ADDR;
-                }
-                else
-                {
-                    // Next state is transmit
-                    i2c_state = S_MASTER_SEND_DATA;
-                }
+                // Next state is transmit
+                i2c_state = S_MASTER_SEND_DATA;
             }
             break;
 
@@ -679,13 +655,12 @@ void I2C_MasterTRBInsert(
     // for interrupt based
     if (*pflag == I2C_MESSAGE_PENDING)
     {
-        while(i2c_state != S_MASTER_IDLE);
-        {
+        do{
             // force the task to run since we know that the queue has
             // something that needs to be sent
 //            PIR1bits.SSPIF = true;
             I2C_ISR();
-        }
+        }while(i2c_state != S_MASTER_IDLE);
     }   // block until request is complete
 
 }

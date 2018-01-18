@@ -87,6 +87,26 @@
 #define BT_FL_SetAnalogMode()  do { ANCON0bits.ANSEL1 = 1; } while(0)
 #define BT_FL_SetDigitalMode() do { ANCON0bits.ANSEL1 = 0; } while(0)
 
+// get/set RA2 procedures
+#define RA2_SetHigh()    do { LATAbits.LATA2 = 1; } while(0)
+#define RA2_SetLow()   do { LATAbits.LATA2 = 0; } while(0)
+#define RA2_Toggle()   do { LATAbits.LATA2 = ~LATAbits.LATA2; } while(0)
+#define RA2_GetValue()         PORTAbits.RA2
+#define RA2_SetDigitalInput()   do { TRISAbits.TRISA2 = 1; } while(0)
+#define RA2_SetDigitalOutput()  do { TRISAbits.TRISA2 = 0; } while(0)
+#define RA2_SetAnalogMode() do { ANCON0bits.ANSEL2 = 1; } while(0)
+#define RA2_SetDigitalMode()do { ANCON0bits.ANSEL2 = 0; } while(0)
+
+// get/set RA3 procedures
+#define RA3_SetHigh()    do { LATAbits.LATA3 = 1; } while(0)
+#define RA3_SetLow()   do { LATAbits.LATA3 = 0; } while(0)
+#define RA3_Toggle()   do { LATAbits.LATA3 = ~LATAbits.LATA3; } while(0)
+#define RA3_GetValue()         PORTAbits.RA3
+#define RA3_SetDigitalInput()   do { TRISAbits.TRISA3 = 1; } while(0)
+#define RA3_SetDigitalOutput()  do { TRISAbits.TRISA3 = 0; } while(0)
+#define RA3_SetAnalogMode() do { ANCON0bits.ANSEL3 = 1; } while(0)
+#define RA3_SetDigitalMode()do { ANCON0bits.ANSEL3 = 0; } while(0)
+
 // get/set spare2 aliases
 #define spare2_TRIS               TRISAbits.TRISA5
 #define spare2_LAT                LATAbits.LATA5

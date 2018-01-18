@@ -106,13 +106,14 @@ void main(void)
     bool timeOUT = false;
     bool fail = false;
     I2C_MESSAGE_STATUS flag = I2C_MESSAGE_PENDING;
-    uint8_t error;
+    uint8_t num = 0;
     
     while (1)
     {        
         // Add your application code
         
         /** ADC */
+//        while(num == 0){
         ADCResult = ADC_GetConversion(BT_FL) * x;
         BTFL_H = ADCResult >> 8;
         BTFL_L = ADCResult;
@@ -144,30 +145,6 @@ void main(void)
         
         CAN_transmit(&ADC1);
         
-//        /** G sensor */
-//        //read linear acceleration data for 3 axis
-//        while (flag != I2C_MESSAGE_FAIL && timeOut < BNO055_MAX_RETRY){
-            while ( I2C_MasterQueueIsFull() == true );
-            writeBuffer[0] = BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR;
-            I2C_MasterWrite (writeBuffer, 1, BNO055_address, &flag);
-//            while (flag == I2C_MESSAGE_PENDING);
-//            if (flag == I2C_MESSAGE_COMPLETE)   timeOut = BNO055_MAX_RETRY;
-//            timeOut++;
-//        }
-//        timeOut = 0;
-//        
-        while (I2C_MasterQueueIsFull() == true);
-        flag = I2C_MESSAGE_PENDING;
-        I2C_MasterRead (data, 6, BNO055_address, &flag);
-//        while (flag == I2C_MESSAGE_PENDING);
-        
-        linear_accel_x_LSB = data[0];
-        linear_accel_x_MSB = data[1];
-        linear_accel_y_LSB = data[2];
-        linear_accel_y_MSB = data[3];
-        linear_accel_z_LSB = data[4];
-        linear_accel_z_MSB = data[5];
-        
         uCAN_MSG CAN_MESSAGE2;
         
         CAN_MESSAGE2.frame.idType=dSTANDARD_CAN_MSG_ID_2_0B;
@@ -188,6 +165,109 @@ void main(void)
         linear_accel_y_MSB += 0x1;
         linear_accel_z_LSB += 0x1;
         linear_accel_z_MSB += 0x1;
+        
+//        num++;
+//        }
+//        num = 0;
+        
+//        /** G sensor */
+//        //read linear acceleration data for 3 axis
+//        while (flag != I2C_MESSAGE_FAIL && timeOut < BNO055_MAX_RETRY){
+        while ( I2C_MasterQueueIsFull() == true );
+        writeBuffer[0] = BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR;
+        I2C_MasterWrite (writeBuffer, 1, BNO055_address, &flag);
+        while (flag == I2C_MESSAGE_PENDING);
+            
+        while (I2C_MasterQueueIsFull() == true);
+        flag = I2C_MESSAGE_PENDING;
+        I2C_MasterRead (data, 1, BNO055_address, &flag);
+        while (flag == I2C_MESSAGE_PENDING);
+        
+        linear_accel_x_LSB = data[0];
+        
+        while ( I2C_MasterQueueIsFull() == true );
+        writeBuffer[0] = BNO055_LINEAR_ACCEL_DATA_X_MSB_ADDR;
+        I2C_MasterWrite (writeBuffer, 1, BNO055_address, &flag);
+        while (flag == I2C_MESSAGE_PENDING);
+            
+        while (I2C_MasterQueueIsFull() == true);
+        flag = I2C_MESSAGE_PENDING;
+        I2C_MasterRead (data, 1, BNO055_address, &flag);
+        while (flag == I2C_MESSAGE_PENDING);
+        
+        linear_accel_x_MSB = data[0];
+        
+        while ( I2C_MasterQueueIsFull() == true );
+        writeBuffer[0] = BNO055_LINEAR_ACCEL_DATA_Y_LSB_ADDR;
+        I2C_MasterWrite (writeBuffer, 1, BNO055_address, &flag);
+        while (flag == I2C_MESSAGE_PENDING);
+            
+        while (I2C_MasterQueueIsFull() == true);
+        flag = I2C_MESSAGE_PENDING;
+        I2C_MasterRead (data, 1, BNO055_address, &flag);
+        while (flag == I2C_MESSAGE_PENDING);
+        
+        linear_accel_y_LSB = data[0];
+        
+        while ( I2C_MasterQueueIsFull() == true );
+        writeBuffer[0] = BNO055_LINEAR_ACCEL_DATA_Y_MSB_ADDR;
+        I2C_MasterWrite (writeBuffer, 1, BNO055_address, &flag);
+        while (flag == I2C_MESSAGE_PENDING);
+            
+        while (I2C_MasterQueueIsFull() == true);
+        flag = I2C_MESSAGE_PENDING;
+        I2C_MasterRead (data, 1, BNO055_address, &flag);
+        while (flag == I2C_MESSAGE_PENDING);
+        
+        linear_accel_y_MSB = data[0];
+        
+        while ( I2C_MasterQueueIsFull() == true );
+        writeBuffer[0] = BNO055_LINEAR_ACCEL_DATA_Z_LSB_ADDR;
+        I2C_MasterWrite (writeBuffer, 1, BNO055_address, &flag);
+        while (flag == I2C_MESSAGE_PENDING);
+            
+        while (I2C_MasterQueueIsFull() == true);
+        flag = I2C_MESSAGE_PENDING;
+        I2C_MasterRead (data, 1, BNO055_address, &flag);
+        while (flag == I2C_MESSAGE_PENDING);
+        
+        linear_accel_z_LSB = data[0];
+        
+        while ( I2C_MasterQueueIsFull() == true );
+        writeBuffer[0] = BNO055_LINEAR_ACCEL_DATA_Z_MSB_ADDR;
+        I2C_MasterWrite (writeBuffer, 1, BNO055_address, &flag);
+        while (flag == I2C_MESSAGE_PENDING);
+            
+        while (I2C_MasterQueueIsFull() == true);
+        flag = I2C_MESSAGE_PENDING;
+        I2C_MasterRead (data, 1, BNO055_address, &flag);
+        while (flag == I2C_MESSAGE_PENDING);
+        
+        linear_accel_z_MSB = data[0];
+        
+//        while (num<10){
+//        uCAN_MSG CAN_MESSAGE2;
+//        
+//        CAN_MESSAGE2.frame.idType=dSTANDARD_CAN_MSG_ID_2_0B;
+//        CAN_MESSAGE2.frame.id=0x635;
+//        CAN_MESSAGE2.frame.dlc=8;
+//        CAN_MESSAGE2.frame.data0 = spare2_H;
+//        CAN_MESSAGE2.frame.data1 = spare2_L;
+//        CAN_MESSAGE2.frame.data2 = linear_accel_x_LSB;
+//        CAN_MESSAGE2.frame.data3 = linear_accel_x_MSB;
+//        CAN_MESSAGE2.frame.data4 = linear_accel_y_LSB;
+//        CAN_MESSAGE2.frame.data5 = linear_accel_y_MSB;
+//        CAN_MESSAGE2.frame.data6 = linear_accel_z_LSB;
+//        CAN_MESSAGE2.frame.data7 = linear_accel_z_MSB;
+//         
+//        CAN_transmit ( &CAN_MESSAGE2 );
+//        
+//        linear_accel_y_LSB += 0x1;
+//        linear_accel_y_MSB += 0x1;
+//        linear_accel_z_LSB += 0x1;
+//        linear_accel_z_MSB += 0x1;
+//        }
+//        num = 0;
     }
 }
 /**
