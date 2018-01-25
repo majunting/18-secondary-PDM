@@ -56,7 +56,7 @@
 #include "adc.h"
 #include "i2c.h"
 
-#define _XTAL_FREQ  64000000
+#define _XTAL_FREQ  16000000
 
 
 /**

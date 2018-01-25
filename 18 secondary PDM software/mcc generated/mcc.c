@@ -52,7 +52,7 @@
 #pragma config XINST = OFF    // Extended Instruction Set->Disabled
 
 // CONFIG1H
-#pragma config FOSC = HS1    // Oscillator->HS oscillator (Medium power, 4 MHz - 16 MHz)
+#pragma config FOSC = HS2    // Oscillator->HS oscillator (High power, 16 MHz - 25 MHz)
 #pragma config PLLCFG = OFF    // PLL x4 Enable bit->Disabled
 #pragma config FCMEN = OFF    // Fail-Safe Clock Monitor->Disabled
 #pragma config IESO = OFF    // Internal External Oscillator Switch Over Mode->Disabled
@@ -123,23 +123,23 @@ void SYSTEM_Initialize(void)
 
 void OSCILLATOR_Initialize(void)
 {
-    // SCS FOSC; HFIOFS not stable; IDLEN disabled; IRCF 8MHz_HF; 
-    OSCCON = 0x60;
+    // SCS FOSC; HFIOFS not stable; IDLEN disabled; IRCF 16MHz_HF; 
+    OSCCON = 0x70;
     // SOSCGO disabled; MFIOSEL disabled; SOSCDRV Low Power; 
     OSCCON2 = 0x00;
-    // INTSRC INTRC; PLLEN enabled; TUN 0; 
-    OSCTUNE = 0x40;
+    // INTSRC INTRC; PLLEN disabled; TUN 0; 
+    OSCTUNE = 0x00;
     // ROSEL System Clock(FOSC); ROON disabled; ROSSLP Disabled in Sleep mode; RODIV Fosc; 
     REFOCON = 0x00;
 }
 
 uint8_t BNO055_Initialize ( void )
 {
-    uint8_t id, address;
+    uint8_t id, address = 0x0;
     uint8_t *message, *writeBuffer;
+    message[0] = 0x0;
     I2C_MESSAGE_STATUS flag;
-    I2C_TRANSACTION_REQUEST_BLOCK *ptrb1, *ptrb2;
-    uint8_t errors;
+    bool addr_sel = false;
     
     while( I2C_MasterQueueIsFull() == true );
     writeBuffer[0] = BNO055_CHIP_ID_ADDR;
@@ -162,13 +162,53 @@ uint8_t BNO055_Initialize ( void )
                 id = message[0];
             }
             if ( id != BNO055_ID ) {
-                return 0x0;
+                __delay_ms(1000);
+                while( I2C_MasterQueueIsFull() == true );
+                writeBuffer[0] = BNO055_CHIP_ID_ADDR;
+                I2C_MasterWrite( writeBuffer, 1, BNO055_ADDRESS_A, &flag );
+                while( flag == I2C_MESSAGE_PENDING );
+                if( flag == I2C_MESSAGE_COMPLETE) {
+                    while( I2C_MasterQueueIsFull() == true );
+                    I2C_MasterRead ( message, 1, BNO055_ADDRESS_A, &flag );
+                    while ( flag == I2C_MESSAGE_PENDING );
+                    id = message[0];
+                    if ( id != BNO055_ID ){
+                        flag = I2C_MESSAGE_PENDING;
+                        writeBuffer[0] = BNO055_CHIP_ID_ADDR;
+                        I2C_MasterWrite( writeBuffer, 1, BNO055_ADDRESS_C, &flag );
+                        while( flag == I2C_MESSAGE_PENDING );
+                        if( flag == I2C_MESSAGE_COMPLETE) {
+                            flag = I2C_MESSAGE_PENDING;
+                            I2C_MasterRead ( message, 1, BNO055_ADDRESS_C, &flag );
+                            while ( flag == I2C_MESSAGE_PENDING );
+                            id = message[0];
+                        }
+                        if ( id != BNO055_ID ) {
+                            address = 0x0;
+                        }
+                        else    address = BNO055_ADDRESS_C;
+//                        address = BNO055_ADDRESS_B;
+                    }
+                    else    address = BNO055_ADDRESS_A;
+                }
             }
             else    address = BNO055_ADDRESS_B;
         }
         else    address = BNO055_ADDRESS_A;
-        __delay_ms(25);
     }
+    
+//    while (id != BNO055_ID) {
+//        while( I2C_MasterQueueIsFull() == true );
+//        writeBuffer[0] = BNO055_CHIP_ID_ADDR;
+//        I2C_MasterWrite( writeBuffer, 1, address, &flag );
+//        while( flag == I2C_MESSAGE_PENDING );
+//        
+//        while( I2C_MasterQueueIsFull() == true );
+//        I2C_MasterRead ( message, 1, BNO055_ADDRESS_A, &flag );
+//        while ( flag == I2C_MESSAGE_PENDING );
+//        id = message[0];
+//        if (id != BNO055_ID)    address++;
+//    }
     
     while( I2C_MasterQueueIsFull() == true );
     writeBuffer[0] = BNO055_OPR_MODE_ADDR;
@@ -184,18 +224,21 @@ uint8_t BNO055_Initialize ( void )
     I2C_MasterWrite ( writeBuffer, 2, address, &flag );
     while ( flag == I2C_MESSAGE_PENDING );
         
+    while( I2C_MasterQueueIsFull() == true );
     writeBuffer[0] = BNO055_PWR_MODE_ADDR;
     writeBuffer[1] = POWER_MODE_NORMAL;
     flag = I2C_MESSAGE_PENDING;
     I2C_MasterWrite ( writeBuffer, 2, BNO055_PWR_MODE_ADDR, &flag );
     while ( flag == I2C_MESSAGE_PENDING );
     
+    while( I2C_MasterQueueIsFull() == true );
     writeBuffer[0] = BNO055_PAGE_ID_ADDR;
     writeBuffer[1] = 0x0;
     flag = I2C_MESSAGE_PENDING;
     I2C_MasterWrite ( writeBuffer, 2, BNO055_PAGE_ID_ADDR, &flag );
     while ( flag == I2C_MESSAGE_PENDING );
     
+    while( I2C_MasterQueueIsFull() == true );
     writeBuffer[0] = BNO055_SYS_TRIGGER_ADDR;
     writeBuffer[1] = 0x0;
     flag = I2C_MESSAGE_PENDING;
@@ -203,6 +246,7 @@ uint8_t BNO055_Initialize ( void )
     while ( flag == I2C_MESSAGE_PENDING );
     
     //set mode to nine degree of freedom (fusion mode)
+    while( I2C_MasterQueueIsFull() == true );
     writeBuffer[0] = BNO055_OPR_MODE_ADDR;
     writeBuffer[1] = OPERATION_MODE_NDOF;
     I2C_MasterWrite ( writeBuffer, 2, address, &flag );

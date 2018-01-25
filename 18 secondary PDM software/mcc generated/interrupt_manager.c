@@ -61,6 +61,10 @@ void interrupt INTERRUPT_InterruptManager (void)
     {
         ADC_ISR();
     }
+    else if(INTCONbits.PEIE == 1 && PIE2bits.BCLIE == 1 && PIR2bits.BCLIF == 1)
+    {
+        I2C_BusCollisionISR();
+    }
     else if(INTCONbits.PEIE == 1 && PIE1bits.SSPIE == 1 && PIR1bits.SSPIF == 1)
     {
         I2C_ISR();

@@ -73,8 +73,8 @@ void TMR1_Initialize(void)
     //TMR1H 255; 
     TMR1H = 0xFF;
 
-    //TMR1L 240; 
-    TMR1L = 0xF0;
+    //TMR1L 252; 
+    TMR1L = 0xFC;
 
     // Load the TMR value to reload variable
     timer1ReloadVal=(TMR1H << 8) | TMR1L;

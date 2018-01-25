@@ -71,6 +71,7 @@ extern "C" {
     // linkage so the functions can be used by the c code. 
 #define BNO055_ADDRESS_A (0x28)
 #define BNO055_ADDRESS_B (0x29)
+#define BNO055_ADDRESS_C (0x52)
 #define BNO055_ID        (0xA0)
 
 #define NUM_BNO055_OFFSET_REGISTERS (22)

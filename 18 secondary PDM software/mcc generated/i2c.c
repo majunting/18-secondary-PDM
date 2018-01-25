@@ -206,16 +206,17 @@ void I2C_Initialize(void)
 
     // SMP High Speed; CKE disabled; 
     SSPSTAT = 0x00;
-    // SSPEN enabled; WCOL no_collision; CKP disabled; SSPM 7 Bit Polling; SSPOV no_overflow; 
-    SSPCON1 = 0x26;
-    // Baud Rate Generator Value: SSPADD 3;   
-    SSPADD = 0x03;
+    // SSPEN enabled; WCOL no_collision; CKP disabled; SSPM FOSC/4_SSPxADD_I2C; SSPOV no_overflow; 
+    SSPCON1 = 0x28;
+    // Baud Rate Generator Value: SSPADD 9;   
+    SSPADD = 0x09;
+    
+    SSPCON2 = 0x0;
 
-   
-//    // clear the master interrupt flag
-//    PIR1bits.SSPIF = 0;
-//    // enable the master interrupt
-//    PIE1bits.SSPIE = 1;
+    // clear the master interrupt flag
+    PIR1bits.SSPIF = 0;
+    // enable the master interrupt
+    PIE1bits.SSPIE = 1;
     
 }
 
@@ -236,7 +237,7 @@ void I2C_ISR ( void )
     static uint8_t  i2c_bytes_left      = 0;
     static uint8_t  i2c_10bit_address_restart = 0;
 
-//    PIR1bits.SSPIF = 0;
+    PIR1bits.SSPIF = 0;
 
     // Check first if there was a collision.
     // If we have a Write Collision, reset and go to idle state */
@@ -376,7 +377,6 @@ void I2C_ISR ( void )
                 i2c_10bit_address_restart prevents the  address to
                 be re-written.
              */
-            I2C_Stop(I2C_MESSAGE_FAIL);
             
             // extract the information for this message
             i2c_address    = p_i2c_trb_current->address;
@@ -576,12 +576,22 @@ void I2C_MasterWrite(
                                 I2C_MESSAGE_STATUS *pflag)
 {
     static I2C_TRANSACTION_REQUEST_BLOCK   trBlock;
+    int i = 0;
 
     // check if there is space in the queue
     if (i2c_object.trStatus.s.full != true)
     {
         I2C_MasterWriteTRBBuild(&trBlock, pdata, length, address);
         I2C_MasterTRBInsert(1, &trBlock, pflag);
+//        SSPCON2bits.SEN = 1;
+//        while (SSPCON2bits.SEN == 1);
+//        while (length-- > 0){
+//            SSPBUF = pdata[i];
+//            __delay_us(500);
+//            while (SSPCON2bits.ACKSTAT == 1);
+//        }
+//        SSPCON2bits.PEN = 1;
+//        while (SSPCON2bits.PEN == 1);
     }
     else
     {
@@ -597,6 +607,7 @@ void I2C_MasterRead(
                                 I2C_MESSAGE_STATUS *pflag)
 {
     static I2C_TRANSACTION_REQUEST_BLOCK   trBlock;
+    int i = 0;
 
 
     // check if there is space in the queue
@@ -604,6 +615,17 @@ void I2C_MasterRead(
     {
         I2C_MasterReadTRBBuild(&trBlock, pdata, length, address);
         I2C_MasterTRBInsert(1, &trBlock, pflag);
+//        SSPCON2bits.SEN = 1;
+//        while (SSPCON2bits.SEN == 1);
+//        while (length-- > 0){
+//            while (SSPBUF == 0x0);
+//            pdata[i] = SSPBUF;
+//            SSPBUF = 0x0;
+//            SSPCON2bits.ACKDT = 0;
+//            __delay_us(500);
+//        }
+//        SSPCON2bits.PEN = 1;
+//        while (SSPCON2bits.PEN == 1);
     }
     else
     {
@@ -655,12 +677,14 @@ void I2C_MasterTRBInsert(
     // for interrupt based
     if (*pflag == I2C_MESSAGE_PENDING)
     {
-        do{
+        while(i2c_state != S_MASTER_IDLE);
+        {
             // force the task to run since we know that the queue has
             // something that needs to be sent
 //            PIR1bits.SSPIF = true;
+//            __delay_us(100);
             I2C_ISR();
-        }while(i2c_state != S_MASTER_IDLE);
+        }
     }   // block until request is complete
 
 }
