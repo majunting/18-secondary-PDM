@@ -49,6 +49,12 @@
 #define BNO055_READ_ADDR 0x51
 #define BNO055_WRITE_ADDR 0x50
 
+//global variables for CAN transmission
+uint8_t BTFL_H, BTFL_L, BTFR_H, BTFR_L, pitot_H, pitot_L,
+        spare_H, spare_L, spare2_H, spare2_L;
+uint8_t linear_accel_x_LSB, linear_accel_x_MSB, linear_accel_y_LSB,
+        linear_accel_y_MSB, linear_accel_z_LSB, linear_accel_z_MSB;
+    
 void I2C_Master_Wait();
 void I2C_Master_Start();
 void I2C_Master_RepeatedStart();
@@ -56,6 +62,7 @@ void I2C_Master_Stop();
 void I2C_Master_Write(uint8_t d);
 void I2C_Master_Read(unsigned short a, uint8_t *data);
 void BNO055Initialize();
+void CAN_TRANSMISSION();
 
 /*
                          Main application
@@ -82,13 +89,13 @@ void main(void)
     //INTERRUPT_GlobalInterruptLowDisable();
 
     // Enable the Global Interrupts
-//    INTERRUPT_GlobalInterruptEnable();
+    INTERRUPT_GlobalInterruptEnable();
 
     // Disable the Global Interrupts
     //INTERRUPT_GlobalInterruptDisable();
 
     // Enable the Peripheral Interrupts
-//    INTERRUPT_PeripheralInterruptEnable();
+    INTERRUPT_PeripheralInterruptEnable();
 
     // Disable the Peripheral Interrupts
     //INTERRUPT_PeripheralInterruptDisable();
@@ -102,12 +109,8 @@ void main(void)
     
     double VDD = 5000.0;    // input voltage 5V
     double x = VDD / 4096.0;
-    
-    uint8_t BTFL_H, BTFL_L, BTFR_H, BTFR_L, pitot_H, pitot_L,
-            spare_H, spare_L, spare2_H, spare2_L;
+ 
     adc_result_t ADCResult;
-    uint8_t linear_accel_x_LSB = 0xEE, linear_accel_x_MSB = 0xFF, linear_accel_y_LSB = 0x00,
-            linear_accel_y_MSB = 0x00, linear_accel_z_LSB = 0x00, linear_accel_z_MSB = 0x00;
     uint8_t *writeBuffer;
     uint8_t *data;
     uint8_t BNO055_address;
@@ -119,11 +122,12 @@ void main(void)
     I2C_MESSAGE_STATUS flag = I2C_MESSAGE_PENDING;
     uint8_t num = 0;
     
+    TMR1_SetInterruptHandler(&CAN_TRANSMISSION);
+    
     while (1)
     {        
         // Add your application code
         /** ADC */
-//        while(num == 0){
         ADCResult = ADC_GetConversion(BT_FL) * x;
         BTFL_H = ADCResult >> 8;
         BTFL_L = ADCResult;
@@ -139,21 +143,6 @@ void main(void)
         ADCResult = ADC_GetConversion ( spare2 ) * x;
         spare2_H = ADCResult >> 8;
         spare2_L = ADCResult;
-        
-        uCAN_MSG ADC1;
-        ADC1.frame.idType=dSTANDARD_CAN_MSG_ID_2_0B;
-        ADC1.frame.id=0x472;
-        ADC1.frame.dlc=8;
-        ADC1.frame.data0=BTFL_H;
-        ADC1.frame.data1=BTFL_L;
-        ADC1.frame.data2=BTFR_H;
-        ADC1.frame.data3=BTFR_L;
-        ADC1.frame.data4=pitot_H;
-        ADC1.frame.data5=pitot_L;
-        ADC1.frame.data6=spare_H;
-        ADC1.frame.data7=spare_L;
-        
-        CAN_transmit(&ADC1);
         
         /** G sensor */
         //read linear acceleration data for 3 axis
@@ -179,22 +168,6 @@ void main(void)
         linear_accel_y_MSB = data[3];
         linear_accel_z_LSB = data[4];
         linear_accel_z_MSB = data[5];
-        
-        uCAN_MSG CAN_MESSAGE2;
-        
-        CAN_MESSAGE2.frame.idType=dSTANDARD_CAN_MSG_ID_2_0B;
-        CAN_MESSAGE2.frame.id=0x473;
-        CAN_MESSAGE2.frame.dlc=8;
-        CAN_MESSAGE2.frame.data0 = spare2_H;
-        CAN_MESSAGE2.frame.data1 = spare2_L;
-        CAN_MESSAGE2.frame.data2 = linear_accel_y_MSB;
-        CAN_MESSAGE2.frame.data3 = linear_accel_y_LSB;
-        CAN_MESSAGE2.frame.data4 = linear_accel_x_MSB;
-        CAN_MESSAGE2.frame.data5 = linear_accel_x_LSB;
-        CAN_MESSAGE2.frame.data6 = linear_accel_z_MSB;
-        CAN_MESSAGE2.frame.data7 = linear_accel_z_LSB;
-         
-        CAN_transmit ( &CAN_MESSAGE2 );
     }
 }
 
@@ -248,12 +221,14 @@ void BNO055Initialize()
     uint8_t *data;
     data[0] = 0;
     
+    // set to config mode
     I2C_Master_Start();
     I2C_Master_Write(BNO055_WRITE_ADDR);
     I2C_Master_Write(BNO055_OPR_MODE_ADDR);
     I2C_Master_Write(OPERATION_MODE_CONFIG);
     I2C_Master_Stop();
     
+    // reset BNO055
     I2C_Master_Start();
     I2C_Master_Write(BNO055_WRITE_ADDR);
     I2C_Master_Write(BNO055_SYS_TRIGGER_ADDR);
@@ -262,6 +237,7 @@ void BNO055Initialize()
     
     __delay_ms(20);
     
+    // set to normal power mode
     I2C_Master_Start();
     I2C_Master_Write(BNO055_WRITE_ADDR);
     I2C_Master_Write(BNO055_PWR_MODE_ADDR);
@@ -270,12 +246,14 @@ void BNO055Initialize()
     
     __delay_ms(20);
     
+    // set to page 0
     I2C_Master_Start();
     I2C_Master_Write(BNO055_WRITE_ADDR);
     I2C_Master_Write(BNO055_PAGE_ID_ADDR);
     I2C_Master_Write(0x0);
     I2C_Master_Stop();
     
+    // set unit for acceleration to G
     I2C_Master_Start();
     I2C_Master_Write(BNO055_WRITE_ADDR);
     I2C_Master_Write(BNO055_UNIT_SEL_ADDR);
@@ -289,20 +267,40 @@ void BNO055Initialize()
     I2C_Master_Stop();
     
     __delay_ms(20);
-    
-//    I2C_Master_Start();
-//    I2C_Master_Write(BNO055_WRITE_ADDR);
-//    I2C_Master_Write(BNO055_OPR_MODE_ADDR);
-//    I2C_Master_Write(OPERATION_MODE_NDOF);
-//    I2C_Master_Stop();
-    
-//    do {
-//        I2C_Master_Start();
-//        I2C_Master_Write(BNO055_WRITE_ADDR);
-//        I2C_Master_Write(BNO055_OPR_MODE_ADDR);
-//        I2C_Master_Write(OPERATION_MODE_NDOF);
-//        I2C_Master_Stop();
-//    }
+}
+
+void CAN_TRANSMISSION() {
+    uCAN_MSG ADC1;
+
+    ADC1.frame.idType=dSTANDARD_CAN_MSG_ID_2_0B;
+    ADC1.frame.id=0x472;
+    ADC1.frame.dlc=8;
+    ADC1.frame.data0=BTFL_H;
+    ADC1.frame.data1=BTFL_L;
+    ADC1.frame.data2=BTFR_H;
+    ADC1.frame.data3=BTFR_L;
+    ADC1.frame.data4=pitot_H;
+    ADC1.frame.data5=pitot_L;
+    ADC1.frame.data6=spare_H;
+    ADC1.frame.data7=spare_L;
+
+    CAN_transmit(&ADC1);
+
+    uCAN_MSG CAN_MESSAGE2;
+
+    CAN_MESSAGE2.frame.idType=dSTANDARD_CAN_MSG_ID_2_0B;
+    CAN_MESSAGE2.frame.id=0x473;
+    CAN_MESSAGE2.frame.dlc=8;
+    CAN_MESSAGE2.frame.data0 = spare2_H;
+    CAN_MESSAGE2.frame.data1 = spare2_L;
+    CAN_MESSAGE2.frame.data2 = linear_accel_y_MSB;
+    CAN_MESSAGE2.frame.data3 = linear_accel_y_LSB;
+    CAN_MESSAGE2.frame.data4 = linear_accel_x_MSB;
+    CAN_MESSAGE2.frame.data5 = linear_accel_x_LSB;
+    CAN_MESSAGE2.frame.data6 = linear_accel_z_MSB;
+    CAN_MESSAGE2.frame.data7 = linear_accel_z_LSB;
+
+    CAN_transmit ( &CAN_MESSAGE2 );
 }
 /**
  End of File
