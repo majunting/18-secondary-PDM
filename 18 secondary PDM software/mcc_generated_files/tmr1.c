@@ -70,11 +70,11 @@ void TMR1_Initialize(void)
     //T1GSS T1G_pin; TMR1GE disabled; T1GTM disabled; T1GPOL low; T1GGO done; T1GSPM disabled; 
     T1GCON = 0x00;
 
-    //TMR1H 60; 
-    TMR1H = 0x3C;
+    //TMR1H 216; 
+    TMR1H = 0xD8;
 
-    //TMR1L 176; 
-    TMR1L = 0xB0;
+    //TMR1L 240; 
+    TMR1L = 0xF0;
 
     // Load the TMR value to reload variable
     timer1ReloadVal=(TMR1H << 8) | TMR1L;
