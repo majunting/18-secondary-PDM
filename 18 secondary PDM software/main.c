@@ -48,12 +48,6 @@
 
 #define BNO055_READ_ADDR 0x51
 #define BNO055_WRITE_ADDR 0x50
-
-//global variables for CAN transmission
-uint8_t BTFL_H, BTFL_L, BTFR_H, BTFR_L, pitot_H, pitot_L,
-        spare_H, spare_L, spare2_H, spare2_L;
-uint8_t linear_accel_x_LSB, linear_accel_x_MSB, linear_accel_y_LSB,
-        linear_accel_y_MSB, linear_accel_z_LSB, linear_accel_z_MSB;
     
 void I2C_Master_Wait();
 void I2C_Master_Start();
@@ -71,6 +65,14 @@ void main(void)
 {
     // Initialize the device
     SYSTEM_Initialize();
+    BNO055Initialize();
+    
+    // edit 3 bits in CIOCON register (CAN IO control)
+    CIOCONbits.CLKSEL = 1;  // CAN clk select
+    CIOCONbits.ENDRHI = 1;  // enable drive high (CANTX drives VDD when recessive)
+    CIOCONbits.CANCAP = 1;
+//    CIOCONbits.TX2SRC = 0;  // CANTX2 pin data source (output CANTX)
+//    CIOCONbits.TX2EN = 1;   // CANTX pin enable (output CANRX or CAN clk based on TX2SRC)
     
     // If using interrupts in PIC18 High/Low Priority Mode you need to enable the Global High and Low Interrupts
     // If using interrupts in PIC Mid-Range Compatibility Mode you need to enable the Global and Peripheral Interrupts
@@ -100,74 +102,90 @@ void main(void)
     // Disable the Peripheral Interrupts
     //INTERRUPT_PeripheralInterruptDisable();
 
-    // edit 4 bits in CIOCON register (CAN IO control)
-    CIOCONbits.CLKSEL = 1;  // CAN clk select
-    CIOCONbits.ENDRHI = 1;  // enable drive high (CANTX drives VDD when recessive)
-    CIOCONbits.CANCAP = 1;
-//    CIOCONbits.TX2SRC = 0;  // CANTX2 pin data source (output CANTX)
-//    CIOCONbits.TX2EN = 1;   // CANTX pin enable (output CANRX or CAN clk based on TX2SRC)
-    
-    double VDD = 5000.0;    // input voltage 5V
-    double x = VDD / 4096.0;
- 
-    adc_result_t ADCResult;
-    uint8_t *writeBuffer;
-    uint8_t *data;
-    uint8_t BNO055_address;
-    BNO055Initialize();
-    uint16_t timeOut = 0;
-    bool complete = false;
-    bool timeOUT = false;
-    bool fail = false;
-    I2C_MESSAGE_STATUS flag = I2C_MESSAGE_PENDING;
-    uint8_t num = 0;
+//    double VDD = 5000.0;    // input voltage 5V
+//    double x = VDD / 4096.0;
+// 
+//    adc_result_t ADCResult;
+//    uint8_t *data;
     
     TMR1_SetInterruptHandler(&CAN_TRANSMISSION);
     
     while (1)
     {        
-        // Add your application code
-        /** ADC */
-        ADCResult = ADC_GetConversion(BT_FL) * x;
-        BTFL_H = ADCResult >> 8;
-        BTFL_L = ADCResult;
-        ADCResult = ADC_GetConversion(BT_FR) * x;
-        BTFR_H = ADCResult >> 8;
-        BTFR_L = ADCResult;
-        ADCResult = ADC_GetConversion(pitot) * x;
-        pitot_H = ADCResult >> 8;
-        pitot_L = ADCResult;
-        ADCResult = ADC_GetConversion(spare) * x;
-        spare_H = ADCResult >> 8;
-        spare_L = ADCResult;
-        ADCResult = ADC_GetConversion ( spare2 ) * x;
-        spare2_H = ADCResult >> 8;
-        spare2_L = ADCResult;
-        
-        /** G sensor */
-        //read linear acceleration data for 3 axis
-        I2C_Master_Start();
-        I2C_Master_Write(BNO055_WRITE_ADDR);
-        I2C_Master_Write(BNO055_OPR_MODE_ADDR);
-        I2C_Master_Write(OPERATION_MODE_ACCONLY);
-        I2C_Master_Stop();
-        
-        I2C_Master_Start();
-        I2C_Master_Write(BNO055_WRITE_ADDR);
-        I2C_Master_Write(BNO055_ACCEL_DATA_X_LSB_ADDR);
-        I2C_Master_Stop();
-        
-        I2C_Master_Start();         //Start condition
-        I2C_Master_Write(BNO055_READ_ADDR);     //7 bit address + Read
-        I2C_Master_Read(6, data); //Read + Acknowledge
-        I2C_Master_Stop();          //Stop condition
-        
-        linear_accel_x_LSB = data[0];
-        linear_accel_x_MSB = data[1];
-        linear_accel_y_LSB = data[2];
-        linear_accel_y_MSB = data[3];
-        linear_accel_z_LSB = data[4];
-        linear_accel_z_MSB = data[5];
+//        // Add your application code
+//        /** ADC */
+//        ADCResult = ADC_GetConversion(BT_FL) * x;
+//        BTFL_H = ADCResult >> 8;
+//        BTFL_L = ADCResult;
+//        ADCResult = ADC_GetConversion(BT_FR) * x;
+//        BTFR_H = ADCResult >> 8;
+//        BTFR_L = ADCResult;
+//        ADCResult = ADC_GetConversion(pitot) * x;
+//        pitot_H = ADCResult >> 8;
+//        pitot_L = ADCResult;
+//        ADCResult = ADC_GetConversion(spare) * x;
+//        spare_H = ADCResult >> 8;
+//        spare_L = ADCResult;
+//        ADCResult = ADC_GetConversion ( spare2 ) * x;
+//        spare2_H = ADCResult >> 8;
+//        spare2_L = ADCResult;
+//        
+//        /** G sensor */
+//        //read linear acceleration data for 3 axis
+//        I2C_Master_Start();
+//        I2C_Master_Write(BNO055_WRITE_ADDR);
+//        I2C_Master_Write(BNO055_OPR_MODE_ADDR);
+//        I2C_Master_Write(OPERATION_MODE_ACCONLY);
+//        I2C_Master_Stop();
+//        
+//        I2C_Master_Start();
+//        I2C_Master_Write(BNO055_WRITE_ADDR);
+//        I2C_Master_Write(BNO055_ACCEL_DATA_X_LSB_ADDR);
+//        I2C_Master_Stop();
+//        
+//        I2C_Master_Start();         //Start condition
+//        I2C_Master_Write(BNO055_READ_ADDR);     //7 bit address + Read
+//        I2C_Master_Read(6, data); //Read + Acknowledge
+//        I2C_Master_Stop();          //Stop condition
+//        
+//        linear_accel_x_LSB = data[0];
+//        linear_accel_x_MSB = data[1];
+//        linear_accel_y_LSB = data[2];
+//        linear_accel_y_MSB = data[3];
+//        linear_accel_z_LSB = data[4];
+//        linear_accel_z_MSB = data[5];
+//        
+//        uCAN_MSG ADC1;
+//
+//        ADC1.frame.idType=dSTANDARD_CAN_MSG_ID_2_0B;
+//        ADC1.frame.id=0x472;
+//        ADC1.frame.dlc=8;
+//        ADC1.frame.data0=BTFL_H;
+//        ADC1.frame.data1=BTFL_L;
+//        ADC1.frame.data2=BTFR_H;
+//        ADC1.frame.data3=BTFR_L;
+//        ADC1.frame.data4=pitot_H;
+//        ADC1.frame.data5=pitot_L;
+//        ADC1.frame.data6=spare_H;
+//        ADC1.frame.data7=spare_L;
+//
+//        CAN_transmit(&ADC1);
+//
+//        uCAN_MSG CAN_MESSAGE2;
+//
+//        CAN_MESSAGE2.frame.idType=dSTANDARD_CAN_MSG_ID_2_0B;
+//        CAN_MESSAGE2.frame.id=0x473;
+//        CAN_MESSAGE2.frame.dlc=8;
+//        CAN_MESSAGE2.frame.data0 = spare2_H;
+//        CAN_MESSAGE2.frame.data1 = spare2_L;
+//        CAN_MESSAGE2.frame.data2 = linear_accel_y_MSB;
+//        CAN_MESSAGE2.frame.data3 = linear_accel_y_LSB;
+//        CAN_MESSAGE2.frame.data4 = linear_accel_x_MSB;
+//        CAN_MESSAGE2.frame.data5 = linear_accel_x_LSB;
+//        CAN_MESSAGE2.frame.data6 = linear_accel_z_MSB;
+//        CAN_MESSAGE2.frame.data7 = linear_accel_z_LSB;
+//
+//        CAN_transmit ( &CAN_MESSAGE2 );
     }
 }
 
@@ -260,6 +278,7 @@ void BNO055Initialize()
     I2C_Master_Write(0x1);
     I2C_Master_Stop();
     
+    // clear sys trigger register
     I2C_Master_Start();
     I2C_Master_Write(BNO055_WRITE_ADDR);
     I2C_Master_Write(BNO055_SYS_TRIGGER_ADDR);
@@ -270,21 +289,81 @@ void BNO055Initialize()
 }
 
 void CAN_TRANSMISSION() {
-    uCAN_MSG ADC1;
+    //variables for CAN transmission
+    uint8_t BTFL_H, BTFL_L, BTFR_H, BTFR_L, pitot_H, pitot_L,
+            spare_H, spare_L, spare2_H, spare2_L;
+    uint8_t linear_accel_x_LSB, linear_accel_x_MSB, linear_accel_y_LSB,
+            linear_accel_y_MSB, linear_accel_z_LSB, linear_accel_z_MSB;    
+    
+    // counter to increase interval for ADC as it is read @ 10Hz
+    static uint8_t count = 0;
+    
+    double VDD = 5000.0;    // input voltage 5V
+    double x = VDD / 4096.0;
+ 
+    adc_result_t ADCResult;
+    uint8_t *data;       
+    if(count == 10){
+        /** ADC */
+        ADCResult = ADC_GetConversion(BT_FL) * x;
+        BTFL_H = ADCResult >> 8;
+        BTFL_L = ADCResult;
+        ADCResult = ADC_GetConversion(BT_FR) * x;
+        BTFR_H = ADCResult >> 8;
+        BTFR_L = ADCResult;
+        ADCResult = ADC_GetConversion(pitot) * x;
+        pitot_H = ADCResult >> 8;
+        pitot_L = ADCResult;
+        ADCResult = ADC_GetConversion(spare) * x;
+        spare_H = ADCResult >> 8;
+        spare_L = ADCResult;
+        ADCResult = ADC_GetConversion (spare2) * x;
+        spare2_H = ADCResult >> 8;
+        spare2_L = ADCResult;
 
-    ADC1.frame.idType=dSTANDARD_CAN_MSG_ID_2_0B;
-    ADC1.frame.id=0x472;
-    ADC1.frame.dlc=8;
-    ADC1.frame.data0=BTFL_H;
-    ADC1.frame.data1=BTFL_L;
-    ADC1.frame.data2=BTFR_H;
-    ADC1.frame.data3=BTFR_L;
-    ADC1.frame.data4=pitot_H;
-    ADC1.frame.data5=pitot_L;
-    ADC1.frame.data6=spare_H;
-    ADC1.frame.data7=spare_L;
+        uCAN_MSG ADC1;
 
-    CAN_transmit(&ADC1);
+        ADC1.frame.idType=dSTANDARD_CAN_MSG_ID_2_0B;
+        ADC1.frame.id=0x472;
+        ADC1.frame.dlc=8;
+        ADC1.frame.data0=BTFL_H;
+        ADC1.frame.data1=BTFL_L;
+        ADC1.frame.data2=BTFR_H;
+        ADC1.frame.data3=BTFR_L;
+        ADC1.frame.data4=pitot_H;
+        ADC1.frame.data5=pitot_L;
+        ADC1.frame.data6=spare_H;
+        ADC1.frame.data7=spare_L;
+
+        CAN_transmit(&ADC1);
+        count = 0;
+    }
+    else    count++;
+
+    /** G sensor */
+    //read linear acceleration data for 3 axis
+    I2C_Master_Start();
+    I2C_Master_Write(BNO055_WRITE_ADDR);
+    I2C_Master_Write(BNO055_OPR_MODE_ADDR);
+    I2C_Master_Write(OPERATION_MODE_ACCONLY);
+    I2C_Master_Stop();
+
+    I2C_Master_Start();
+    I2C_Master_Write(BNO055_WRITE_ADDR);
+    I2C_Master_Write(BNO055_ACCEL_DATA_X_LSB_ADDR);
+    I2C_Master_Stop();
+
+    I2C_Master_Start();         //Start condition
+    I2C_Master_Write(BNO055_READ_ADDR);     //7 bit address + Read
+    I2C_Master_Read(6, data); //Read + Acknowledge
+    I2C_Master_Stop();          //Stop condition
+
+    linear_accel_x_LSB = data[0];
+    linear_accel_x_MSB = data[1];
+    linear_accel_y_LSB = data[2];
+    linear_accel_y_MSB = data[3];
+    linear_accel_z_LSB = data[4];
+    linear_accel_z_MSB = data[5];
 
     uCAN_MSG CAN_MESSAGE2;
 
