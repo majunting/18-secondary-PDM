@@ -64,29 +64,29 @@ void TMR1_Initialize(void)
 {
     //Set the Timer to the options selected in the GUI
 
-    //T1CKPS 1:4; RD16 disabled; SOSCEN disabled; nT1SYNC synchronize; TMR1CS FOSC/4; TMR1ON off; 
-    T1CON = 0x20;
+    //T1CKPS 1:1; RD16 disabled; SOSCEN disabled; nT1SYNC synchronize; TMR1CS FOSC/4; TMR1ON off; 
+    T1CON = 0x00;
 
     //T1GSS T1G_pin; TMR1GE disabled; T1GTM disabled; T1GPOL low; T1GGO done; T1GSPM disabled; 
     T1GCON = 0x00;
 
-    //TMR1H 216; 
-    TMR1H = 0xD8;
+    //TMR1H 255; 
+    TMR1H = 0xFF;
 
-    //TMR1L 240; 
-    TMR1L = 0xF0;
+    //TMR1L 252; 
+    TMR1L = 0xFC;
 
     // Load the TMR value to reload variable
     timer1ReloadVal=(TMR1H << 8) | TMR1L;
 
-    // Clearing IF flag before enabling the interrupt.
+    // Clearing IF flag.
     PIR1bits.TMR1IF = 0;
 
-    // Enabling TMR1 interrupt.
-    PIE1bits.TMR1IE = 1;
+    // Clearing IF flag before enabling the interrupt.
+    PIR1bits.TMR1GIF = 0;
 
-    // Set Default Interrupt Handler
-    TMR1_SetInterruptHandler(TMR1_DefaultInterruptHandler);
+    // Enabling TMR1 interrupt.
+    PIE1bits.TMR1GIE = 1;
 
     // Start TMR1
     TMR1_StartTimer();
@@ -152,31 +152,16 @@ uint8_t TMR1_CheckGateValueStatus(void)
     return (T1GCONbits.T1GVAL);
 }
 
-void TMR1_ISR(void)
+bool TMR1_HasOverflowOccured(void)
 {
-
-    // Clear the TMR1 interrupt flag
-    PIR1bits.TMR1IF = 0;
-
-    TMR1H = (timer1ReloadVal >> 8);
-    TMR1L = timer1ReloadVal;
-
-    if(TMR1_InterruptHandler)
-    {
-        TMR1_InterruptHandler();
-    }
+    // check if  overflow has occurred by checking the TMRIF bit
+    return(PIR1bits.TMR1IF);
 }
-
-
-void TMR1_SetInterruptHandler(void* InterruptHandler){
-    TMR1_InterruptHandler = InterruptHandler;
+void TMR1_GATE_ISR(void)
+{
+    // clear the TMR1 interrupt flag
+    PIR1bits.TMR1GIF = 0;
 }
-
-void TMR1_DefaultInterruptHandler(void){
-    // add your TMR1 interrupt custom code
-    // or set custom function using TMR1_SetInterruptHandler()
-}
-
 /**
   End of File
 */

@@ -74,6 +74,8 @@ void ADC_Initialize(void)
     // ADRESL 0; 
     ADRESL = 0x00;
     
+    // Enabling ADC interrupt.
+    PIE1bits.ADIE = 1;
 }
 
 void ADC_StartConversion(adc_channel_t channel)
@@ -120,6 +122,12 @@ adc_result_t ADC_GetConversion(adc_channel_t channel)
     
     // Conversion finished, return the result
     return ((ADRESH << 8) + ADRESL);
+}
+
+void ADC_ISR(void)
+{
+    // Clear the ADC interrupt flag
+    PIR1bits.ADIF = 0;
 }
 /**
  End of File

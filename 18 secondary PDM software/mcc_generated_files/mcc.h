@@ -50,10 +50,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "../BNO055.h"
-#include "interrupt_manager.h"
-#include "tmr1.h"
-#include "ecan.h"
 #include "adc.h"
+#include "tmr0.h"
+#include "ecan.h"
+#include "tmr1.h"
 #include "i2c.h"
 
 #define _XTAL_FREQ  16000000
@@ -85,6 +85,7 @@ void SYSTEM_Initialize(void);
  */
 void OSCILLATOR_Initialize(void);
 
+uint8_t BNO055_Initialize(void);
 
 
 #endif	/* MCC_H */
