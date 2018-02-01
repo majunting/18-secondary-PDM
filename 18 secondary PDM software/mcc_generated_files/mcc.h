@@ -51,10 +51,11 @@
 #include <stdbool.h>
 #include "../BNO055.h"
 #include "interrupt_manager.h"
-#include "tmr1.h"
+#include "i2c.h"
 #include "ecan.h"
 #include "adc.h"
-#include "i2c.h"
+#include "tmr1.h"
+#include "tmr2.h"
 
 #define _XTAL_FREQ  16000000
 
