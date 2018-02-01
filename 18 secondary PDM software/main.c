@@ -48,6 +48,7 @@
 
 #define BNO055_READ_ADDR 0x51
 #define BNO055_WRITE_ADDR 0x50
+#define ADC_delay   8
     
 void I2C_Master_Wait();
 void I2C_Master_Start();
@@ -126,7 +127,7 @@ void main(void)
     while (1)
     {        
         if (TMR2_GetTransmit() == true){
-            if(count == 10){
+            if(count == ADC_delay){
                 /** ADC */
                 ADCResult = ADC_GetConversion(BT_FL) * x;
                 BTFL_H = ADCResult >> 8;
