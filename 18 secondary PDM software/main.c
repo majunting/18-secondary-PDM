@@ -148,18 +148,18 @@ void main(void)
                 uCAN_MSG ADC1;
 
                 ADC1.frame.idType=dSTANDARD_CAN_MSG_ID_2_0B;
-                ADC1.frame.id=0x472;
+                ADC1.frame.id=0x474;
                 ADC1.frame.dlc=8;
-                ADC1.frame.data0=BTFL_H;
-                ADC1.frame.data1=BTFL_L;
-                ADC1.frame.data2=BTFR_H;
-                ADC1.frame.data3=BTFR_L;
-                ADC1.frame.data4=pitot_H;
-                ADC1.frame.data5=pitot_L;
-                ADC1.frame.data6=spare_H;
-                ADC1.frame.data7=spare_L;
+                ADC1.frame.data0= BTFR_H;
+                ADC1.frame.data1= BTFR_L;
+                ADC1.frame.data2= pitot_H;
+                ADC1.frame.data3= pitot_L;
+                ADC1.frame.data4= spare_H;
+                ADC1.frame.data5= spare_L;
+                ADC1.frame.data6= spare2_H;
+                ADC1.frame.data7= spare2_L;
 
-                CAN_transmit(&ADC1);
+                //CAN_transmit(&ADC1);
                 count = 0;
             }
             else    count++;
@@ -192,16 +192,16 @@ void main(void)
             uCAN_MSG CAN_MESSAGE2;
 
             CAN_MESSAGE2.frame.idType=dSTANDARD_CAN_MSG_ID_2_0B;
-            CAN_MESSAGE2.frame.id=0x473;
+            CAN_MESSAGE2.frame.id=0x470;
             CAN_MESSAGE2.frame.dlc=8;
-            CAN_MESSAGE2.frame.data0 = spare2_H;
-            CAN_MESSAGE2.frame.data1 = spare2_L;
-            CAN_MESSAGE2.frame.data2 = linear_accel_y_MSB;
-            CAN_MESSAGE2.frame.data3 = linear_accel_y_LSB;
-            CAN_MESSAGE2.frame.data4 = linear_accel_x_MSB;
-            CAN_MESSAGE2.frame.data5 = linear_accel_x_LSB;
-            CAN_MESSAGE2.frame.data6 = linear_accel_z_MSB;
-            CAN_MESSAGE2.frame.data7 = linear_accel_z_LSB;
+            CAN_MESSAGE2.frame.data0 = linear_accel_y_MSB;
+            CAN_MESSAGE2.frame.data1 = linear_accel_y_LSB;
+            CAN_MESSAGE2.frame.data2 = linear_accel_x_MSB;
+            CAN_MESSAGE2.frame.data3 = linear_accel_x_LSB;
+            CAN_MESSAGE2.frame.data4 = linear_accel_z_MSB;
+            CAN_MESSAGE2.frame.data5 = linear_accel_z_LSB;
+            CAN_MESSAGE2.frame.data6 = BTFL_H;
+            CAN_MESSAGE2.frame.data7 = BTFL_L;
 
             CAN_transmit ( &CAN_MESSAGE2 );
             TMR2_ClearTransmit(); 
