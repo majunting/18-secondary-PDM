@@ -181,13 +181,19 @@ void main(void)
             I2C_Master_Write(BNO055_READ_ADDR);     //7 bit address + Read
             I2C_Master_Read(6, data); //Read + Acknowledge
             I2C_Master_Stop();          //Stop condition
-
-            linear_accel_x_LSB = data[0];
-            linear_accel_x_MSB = data[1];
-            linear_accel_y_LSB = data[2];
-            linear_accel_y_MSB = data[3];
-            linear_accel_z_LSB = data[4];
-            linear_accel_z_MSB = data[5];
+            
+            if (data[1] <= 0x0F){ //check that data acquired are acceptable -> within the range of the acceleration reading
+              linear_accel_x_LSB = data[0];
+              linear_accel_x_MSB = data[1];
+            }
+            if (data[3] <= 0x0F){
+              linear_accel_y_LSB = data[2];
+              linear_accel_y_MSB = data[3];
+            }
+            if (data[5] <= 0x0F){
+              linear_accel_z_LSB = data[4];
+              linear_accel_z_MSB = data[5];
+            }
 
             uCAN_MSG CAN_MESSAGE2;
 
